@@ -24,22 +24,45 @@ useEffect(() => {
   const controller = new AbortController();
 
   const getProducts = async () => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const response = await fetch("https://fakestoreapi.com/products/", {
-      signal: controller.signal,
-    });
+      // fetch single product
+      const response = await fetch(
+        `https://fakestoreapi.com/products/${id}`,
+        { signal: controller.signal }
+      );
 
-    const data = await response.json();
-    setData(data);
-    setFilter(data);
-    setLoading(false);
+      const data = await response.json();
+      setProduct(data);
+      setLoading(false);
+
+      // fetch similar products
+      setLoading2(true);
+
+      const res2 = await fetch("https://fakestoreapi.com/products/");
+      const allProducts = await res2.json();
+
+      const filtered = allProducts.filter(
+        (item) =>
+          item.category === data.category &&
+          item.id !== data.id
+      );
+
+      setSimilarProducts(filtered);
+      setLoading2(false);
+
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        console.error(error);
+      }
+    }
   };
 
   getProducts();
 
   return () => controller.abort();
-}, []);
+}, [id]);
 
   const Loading = () => {
     return (
